@@ -31,8 +31,9 @@ export function InstagramFeed() {
     let disposed = false;
     let activeRequest: AbortController | null = null;
 
-    const refresh = async () => {
-      if (document.hidden || activeRequest) return;
+    // The first load always runs, even in a background tab. Later refreshes skip hidden tabs.
+    const refresh = async (initial = false) => {
+      if (activeRequest || (!initial && document.hidden)) return;
       const controller = new AbortController();
       activeRequest = controller;
       const timeout = window.setTimeout(() => controller.abort(), 15000);
@@ -70,7 +71,7 @@ export function InstagramFeed() {
         if (activeRequest === controller) activeRequest = null;
       }
     };
-    void refresh();
+    void refresh(true);
     const interval = window.setInterval(() => void refresh(), 30 * 60 * 1000);
     const onVisible = () => { if (!document.hidden) void refresh(); };
     document.addEventListener('visibilitychange', onVisible);
